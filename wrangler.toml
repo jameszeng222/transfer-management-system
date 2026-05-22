@@ -5,4 +5,4 @@ pages_build_output_dir = "./dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "transfer-management-db"
-database_id = "placeholder-replace-after-creation"
+database_id = "1b58787a-5d84-49da-9e66-2e71132975cd"
