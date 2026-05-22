@@ -33,7 +33,6 @@ const menuItems: MenuItem[] = [
     children: [
       { label: '调拨单列表', path: '/transfers' },
       { label: '创建调拨单', path: '/transfers/create' },
-      { label: '批量导入', path: '/transfers/import' },
     ],
   },
   {
@@ -77,7 +76,6 @@ const breadcrumbMap: Record<string, string> = {
   '/': '数据看板',
   '/transfers': '调拨单管理 / 调拨单列表',
   '/transfers/create': '调拨单管理 / 创建调拨单',
-  '/transfers/import': '调拨单管理 / 批量导入',
   '/transit/overview': '在途管理 / 在途总览',
   '/transit/list': '在途管理 / 在途明细',
   '/transit/abnormal': '在途管理 / 异常处理',
@@ -95,7 +93,9 @@ export default function Layout() {
   const { setCurrentPageName } = useAppStore();
   const location = useLocation();
   const navigate = useNavigate();
-  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(
+    menuItems.filter((item) => item.children && item.label !== '系统设置').map((item) => item.label)
+  );
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';

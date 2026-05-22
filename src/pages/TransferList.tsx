@@ -73,7 +73,7 @@ export default function TransferList() {
           <button className="btn-secondary btn-sm" onClick={exportCsv}>
             <Download size={14} />导出CSV
           </button>
-          <button className="btn-secondary btn-sm" onClick={() => navigate('/transfers/import')}>
+          <button className="btn-secondary btn-sm" onClick={() => navigate('/transfers/create')}>
             <Upload size={14} />批量导入
           </button>
           <button className="btn-primary btn-sm" onClick={() => navigate('/transfers/create')}>

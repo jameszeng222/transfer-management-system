@@ -4,7 +4,6 @@ import Dashboard from '@/pages/Dashboard';
 import TransferList from '@/pages/TransferList';
 import TransferCreate from '@/pages/TransferCreate';
 import TransferDetail from '@/pages/TransferDetail';
-import TransferImport from '@/pages/TransferImport';
 import TransitOverview from '@/pages/TransitOverview';
 import TransitList from '@/pages/TransitList';
 import TransitAbnormal from '@/pages/TransitAbnormal';
@@ -26,7 +25,6 @@ export default function App() {
           <Route path="/transfers" element={<TransferList />} />
           <Route path="/transfers/create" element={<TransferCreate />} />
           <Route path="/transfers/:id" element={<TransferDetail />} />
-          <Route path="/transfers/import" element={<TransferImport />} />
           <Route path="/transit/overview" element={<TransitOverview />} />
           <Route path="/transit/list" element={<TransitList />} />
           <Route path="/transit/abnormal" element={<TransitAbnormal />} />
