@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import StatusBadge from '@/components/StatusBadge';
 import Modal from '@/components/Modal';
 import { AlertTriangle, PackageCheck } from 'lucide-react';
 
 export default function TransitAbnormal() {
+  const navigate = useNavigate();
   const [logisticsData, setLogisticsData] = useState<any[]>([]);
   const [shelvingData, setShelvingData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,7 +112,7 @@ export default function TransitAbnormal() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>业务单号</th>
+                <th>调拨单号</th>
                 <th>第三方入库单</th>
                 <th>异常类型</th>
                 <th>异常备注</th>
@@ -126,7 +128,11 @@ export default function TransitAbnormal() {
               ) : (
                 data.map((item: any) => (
                   <tr key={item.id}>
-                    <td className="font-medium text-slate-800">{item.biz_order_no || '-'}</td>
+                    <td className="font-medium text-slate-800">
+                      <button className="link-btn font-medium" onClick={() => navigate(`/transfers/${item.id}`)}>
+                        {item.transfer_order_no || item.biz_order_no || '-'}
+                      </button>
+                    </td>
                     <td>{item.third_party_inbound_no || '-'}</td>
                     <td>
                       <StatusBadge type="abnormalType" value={tab === 'logistics' ? item.logistics_abnormal_type : item.shelve_abnormal_type} />

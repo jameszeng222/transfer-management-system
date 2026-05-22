@@ -51,6 +51,17 @@ export default function SettingTeam() {
     }
   };
 
+  const handleDelete = async (item: any) => {
+    if (!confirm(`确定删除团队「${item.name}」吗？`)) return;
+    try {
+      await api.deleteTeam(item.id);
+      const res = await api.getTeams();
+      setList(res?.list || res || []);
+    } catch (e: any) {
+      alert(e.message || '删除失败');
+    }
+  };
+
   return (
     <div className="animate-fade-in">
       <div className="page-header flex items-start justify-between">
@@ -87,6 +98,7 @@ export default function SettingTeam() {
                     <td>{item.leader || '-'}</td>
                     <td>
                       <button className="link-btn" onClick={() => openEdit(item)}>编辑</button>
+                      <button className="link-btn text-red-500 ml-2" onClick={() => handleDelete(item)}>删除</button>
                     </td>
                   </tr>
                 ))

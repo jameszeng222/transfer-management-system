@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import StatusBadge from '@/components/StatusBadge';
 import { Search, CheckCircle, CreditCard, X } from 'lucide-react';
 
 export default function Reconciliation() {
+  const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -143,7 +145,7 @@ export default function Reconciliation() {
                 <th className="w-10">
                   <input type="checkbox" checked={selectedIds.length === list.length && list.length > 0} onChange={toggleAll} className="rounded border-slate-300" />
                 </th>
-                <th>业务单号</th>
+                <th>调拨单号</th>
                 <th>物流商</th>
                 <th>预估运费</th>
                 <th>最终运费</th>
@@ -164,7 +166,11 @@ export default function Reconciliation() {
                       <td>
                         <input type="checkbox" checked={selectedIds.includes(t.id)} onChange={() => toggleSelect(t.id)} className="rounded border-slate-300" />
                       </td>
-                      <td className="font-medium text-slate-800">{t.biz_order_no || '-'}</td>
+                      <td className="font-medium text-slate-800">
+                        <button className="link-btn font-medium" onClick={() => navigate(`/transfers/${t.id}`)}>
+                          {t.transfer_order_no || t.biz_order_no || '-'}
+                        </button>
+                      </td>
                       <td>{t.carrier_name || '-'}</td>
                       <td>{t.estimated_freight ? `¥${t.estimated_freight}` : '-'}</td>
                       <td className="font-medium text-slate-800">{t.final_freight ? `¥${t.final_freight}` : '-'}</td>

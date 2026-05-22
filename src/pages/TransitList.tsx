@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import StatusBadge from '@/components/StatusBadge';
 import { Download, Search, X, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightIcon } from 'lucide-react';
 
 export default function TransitList() {
+  const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -118,7 +120,7 @@ export default function TransitList() {
             <thead>
               <tr>
                 <th className="w-8"></th>
-                <th>业务单号</th>
+                <th>调拨单号</th>
                 <th>第三方入库单</th>
                 <th>发货仓→目的仓</th>
                 <th>物流商</th>
@@ -156,7 +158,11 @@ export default function TransitList() {
                             {isExpanded ? <ChevronDown size={14} /> : <ChevronRightIcon size={14} />}
                           </button>
                         </td>
-                        <td className="font-medium text-slate-800">{t.biz_order_no || '-'}</td>
+                        <td className="font-medium text-slate-800">
+                          <button className="link-btn font-medium" onClick={() => navigate(`/transfers/${t.id}`)}>
+                            {t.transfer_order_no || t.biz_order_no || '-'}
+                          </button>
+                        </td>
                         <td>{t.third_party_inbound_no || '-'}</td>
                         <td>
                           <span className="text-slate-700">{t.origin_warehouse_name || '-'}</span>

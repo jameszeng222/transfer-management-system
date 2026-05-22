@@ -144,7 +144,6 @@ export default function TransferList() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>业务单号</th>
                 <th>调拨单号</th>
                 <th>第三方入库单</th>
                 <th>发货仓→目的仓</th>
@@ -160,10 +159,10 @@ export default function TransferList() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={12} className="text-center py-8 text-slate-400">加载中...</td></tr>
+                <tr><td colSpan={11} className="text-center py-8 text-slate-400">加载中...</td></tr>
               ) : transfers.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="py-12">
+                  <td colSpan={11} className="py-12">
                     <div className="flex flex-col items-center gap-2">
                       <Search size={40} className="text-slate-200" />
                       <span className="text-sm text-slate-300">暂无数据</span>
@@ -173,8 +172,11 @@ export default function TransferList() {
               ) : (
                 transfers.map((t: any) => (
                   <tr key={t.id}>
-                    <td className="font-medium text-slate-800">{t.biz_order_no || '-'}</td>
-                    <td>{t.transfer_order_no || '-'}</td>
+                    <td>
+                      <button className="link-btn font-medium" onClick={() => navigate(`/transfers/${t.id}`)}>
+                        {t.transfer_order_no || t.biz_order_no || '-'}
+                      </button>
+                    </td>
                     <td>{t.third_party_inbound_no || '-'}</td>
                     <td>
                       <span className="text-slate-700">{t.origin_warehouse_name || '-'}</span>

@@ -69,6 +69,16 @@ export default function SettingWarehouse() {
     }
   };
 
+  const handleDelete = async (item: any) => {
+    if (!confirm(`确定删除仓库「${item.name}」吗？`)) return;
+    try {
+      await api.deleteWarehouse(item.id);
+      await load();
+    } catch (e: any) {
+      alert(e.message || '删除失败');
+    }
+  };
+
   const renderTable = (items: any[], title: string, type: string) => (
     <div className="card mb-6">
       <div className="card-header">
@@ -106,6 +116,7 @@ export default function SettingWarehouse() {
                   <td>{item.phone || '-'}</td>
                   <td>
                     <button className="link-btn" onClick={() => openEdit(item)}>编辑</button>
+                    <button className="link-btn text-red-500 ml-2" onClick={() => handleDelete(item)}>删除</button>
                   </td>
                 </tr>
               ))

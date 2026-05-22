@@ -253,7 +253,7 @@ export default function TransferDetail() {
         </div>
       </div>
 
-      {data.sku_items && data.sku_items.length > 0 && (
+      {data.items && data.items.length > 0 && (
         <div className="card mb-6">
           <div className="card-header">
             <h3 className="card-title">SKU明细</h3>
@@ -265,18 +265,46 @@ export default function TransferDetail() {
                   <th>SKU</th>
                   <th>数量</th>
                   <th>箱号</th>
+                  <th>箱规</th>
+                  <th>总箱数</th>
                 </tr>
               </thead>
               <tbody>
-                {data.sku_items.map((item: any, idx: number) => (
+                {data.items.map((item: any, idx: number) => (
                   <tr key={idx}>
                     <td className="font-medium text-slate-800">{item.sku || '-'}</td>
                     <td>{item.quantity ?? '-'}</td>
                     <td>{item.box_no ?? '-'}</td>
+                    <td>{data.box_spec || '-'}</td>
+                    <td>{data.box_count ?? '-'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {(!data.items || data.items.length === 0) && data.box_spec && (
+        <div className="card mb-6">
+          <div className="card-header">
+            <h3 className="card-title">包装信息</h3>
+          </div>
+          <div className="card-body">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <div className="text-xs text-slate-400 mb-1">箱规</div>
+                <div className="text-sm font-medium text-slate-800">{data.box_spec || '-'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 mb-1">总箱数</div>
+                <div className="text-sm font-medium text-slate-800">{data.box_count ?? '-'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 mb-1">计划数量</div>
+                <div className="text-sm font-medium text-slate-800">{data.planned_qty ?? '-'}</div>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -5,13 +5,21 @@ import { Truck, Box, AlertTriangle, PackageCheck } from 'lucide-react';
 
 export default function TransitOverview() {
   const [data, setData] = useState<any>(null);
+  const [byWarehouse, setByWarehouse] = useState<any[]>([]);
+  const [byCarrier, setByCarrier] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await api.getTransitOverview();
-        setData(res);
+        const [overview, warehouseData, carrierData] = await Promise.all([
+          api.getTransitOverview(),
+          api.getTransitByWarehouse(),
+          api.getTransitByCarrier(),
+        ]);
+        setData(overview);
+        setByWarehouse(Array.isArray(warehouseData) ? warehouseData : []);
+        setByCarrier(Array.isArray(carrierData) ? carrierData : []);
       } catch (e) {
         console.error(e);
       } finally {
@@ -29,17 +37,18 @@ export default function TransitOverview() {
     );
   }
 
-  const stats = [
-    { icon: Truck, label: '在途单数', value: data?.in_transit_count ?? 0, iconBg: 'bg-[#EEF2FF]', iconColor: 'text-indigo-500' },
-    { icon: Box, label: '在途箱数', value: data?.in_transit_boxes ?? 0, iconBg: 'bg-[#EFF6FF]', iconColor: 'text-blue-500' },
-    { icon: AlertTriangle, label: '物流异常', value: data?.logistics_abnormal_count ?? 0, iconBg: 'bg-[#FFFBEB]', iconColor: 'text-amber-500' },
-    { icon: PackageCheck, label: '上架异常', value: data?.shelve_abnormal_count ?? 0, iconBg: 'bg-[#FFF7ED]', iconColor: 'text-orange-500' },
-  ];
+  const abnormalCount = data?.abnormalCount ?? 0;
+  const inTransitCount = data?.inTransitCount ?? 0;
+  const inTransitBoxes = data?.inTransitBoxes ?? 0;
+  const distribution = data?.statusDistribution || [];
+  const totalCount = inTransitCount || 1;
 
-  const distribution = data?.status_distribution || [];
-  const byWarehouse = data?.by_warehouse || [];
-  const byCarrier = data?.by_carrier || [];
-  const totalCount = data?.in_transit_count || 1;
+  const stats = [
+    { icon: Truck, label: '在途单数', value: inTransitCount, iconBg: 'bg-[#EEF2FF]', iconColor: 'text-indigo-500' },
+    { icon: Box, label: '在途箱数', value: inTransitBoxes, iconBg: 'bg-[#EFF6FF]', iconColor: 'text-blue-500' },
+    { icon: AlertTriangle, label: '异常单数', value: abnormalCount, iconBg: 'bg-[#FFFBEB]', iconColor: 'text-amber-500' },
+    { icon: PackageCheck, label: '正常在途', value: inTransitCount - abnormalCount, iconBg: 'bg-[#ECFDF5]', iconColor: 'text-emerald-500' },
+  ];
 
   return (
     <div className="animate-fade-in">
@@ -111,9 +120,9 @@ export default function TransitOverview() {
                 ) : (
                   byWarehouse.map((item: any, idx: number) => (
                     <tr key={idx}>
-                      <td className="font-medium text-slate-800">{item.warehouse || '-'}</td>
-                      <td>{item.count ?? 0}</td>
-                      <td>{item.boxes ?? 0}</td>
+                      <td className="font-medium text-slate-800">{item.warehouse_name || item.warehouse || '-'}</td>
+                      <td>{item.transfer_count ?? item.count ?? 0}</td>
+                      <td>{item.total_boxes ?? item.boxes ?? 0}</td>
                     </tr>
                   ))
                 )}
@@ -141,9 +150,9 @@ export default function TransitOverview() {
                 ) : (
                   byCarrier.map((item: any, idx: number) => (
                     <tr key={idx}>
-                      <td className="font-medium text-slate-800">{item.carrier || '-'}</td>
-                      <td>{item.count ?? 0}</td>
-                      <td>{item.boxes ?? 0}</td>
+                      <td className="font-medium text-slate-800">{item.carrier_name || item.carrier || '-'}</td>
+                      <td>{item.transfer_count ?? item.count ?? 0}</td>
+                      <td>{item.total_boxes ?? item.boxes ?? 0}</td>
                     </tr>
                   ))
                 )}

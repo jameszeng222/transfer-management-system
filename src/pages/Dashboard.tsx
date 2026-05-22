@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import {
   FileText,
@@ -61,6 +62,7 @@ const abnormalColors: Record<string, string> = {
 };
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -265,7 +267,7 @@ export default function Dashboard() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>业务单号</th>
+                    <th>调拨单号</th>
                     <th>异常类型</th>
                     <th>备注</th>
                     <th>路线</th>
@@ -274,7 +276,11 @@ export default function Dashboard() {
                 <tbody>
                   {data.recent_abnormals.map((item) => (
                     <tr key={item.id}>
-                      <td className="font-medium text-slate-800">{item.biz_order_no}</td>
+                      <td className="font-medium text-slate-800">
+                        <button className="link-btn font-medium" onClick={() => navigate(`/transfers/${item.id}`)}>
+                          {item.transfer_order_no || item.biz_order_no}
+                        </button>
+                      </td>
                       <td><StatusBadge type="abnormalType" value={item.logistics_abnormal_type} /></td>
                       <td className="text-slate-500 max-w-[200px] truncate">{item.logistics_abnormal_remark || '-'}</td>
                       <td className="text-slate-400">{item.origin_warehouse_name} → {item.dest_warehouse_name}</td>

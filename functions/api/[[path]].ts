@@ -544,13 +544,13 @@ async function handlePay(db: D1Database, id: string, body: any) {
 async function handleTransitOverview(db: D1Database) {
   const statusPlaceholders = IN_TRANSIT_STATUSES.map(() => '?').join(',');
 
-  const inTransitCount = await db.prepare(
-    `SELECT COUNT(*) as count FROM transfers WHERE status = 'ACTIVE' AND logistics_status IN (${statusPlaceholders})`
-  ).bind(...IN_TRANSIT_STATUSES).first<{ count: number }>();
-
-  const inTransitBoxes = await db.prepare(
-    `SELECT COALESCE(SUM(box_count), 0) as total FROM transfers WHERE status = 'ACTIVE' AND logistics_status IN (${statusPlaceholders})`
-  ).bind(...IN_TRANSIT_STATUSES).first<{ total: number }>();
+  const overviewRow = await db.prepare(`
+    SELECT
+      COUNT(*) as in_transit_count,
+      COALESCE(SUM(box_count), 0) as in_transit_boxes,
+      SUM(CASE WHEN is_logistics_abnormal = 1 OR is_shelve_abnormal = 1 THEN 1 ELSE 0 END) as abnormal_count
+    FROM transfers WHERE status = 'ACTIVE' AND logistics_status IN (${statusPlaceholders})
+  `).bind(...IN_TRANSIT_STATUSES).first<{ in_transit_count: number; in_transit_boxes: number; abnormal_count: number }>();
 
   const statusDistribution = await db.prepare(`
     SELECT logistics_status as status, COUNT(*) as count
@@ -558,15 +558,11 @@ async function handleTransitOverview(db: D1Database) {
     GROUP BY logistics_status
   `).bind(...IN_TRANSIT_STATUSES).all();
 
-  const abnormalCount = await db.prepare(
-    "SELECT COUNT(*) as count FROM transfers WHERE status = 'ACTIVE' AND (is_logistics_abnormal = 1 OR is_shelve_abnormal = 1)"
-  ).first<{ count: number }>();
-
   return success({
-    inTransitCount: inTransitCount!.count,
-    inTransitBoxes: inTransitBoxes!.total,
+    inTransitCount: overviewRow!.in_transit_count,
+    inTransitBoxes: overviewRow!.in_transit_boxes,
+    abnormalCount: overviewRow!.abnormal_count,
     statusDistribution: statusDistribution.results,
-    abnormalCount: abnormalCount!.count,
   });
 }
 
@@ -840,6 +836,39 @@ async function handleTeamCreate(db: D1Database, body: any) {
   return success(team);
 }
 
+async function handleWarehouseDelete(db: D1Database, id: string) {
+  const warehouse = await db.prepare('SELECT * FROM warehouses WHERE id = ?').bind(id).first();
+  if (!warehouse) return error('Warehouse not found', 404);
+
+  const refCount = await db.prepare('SELECT COUNT(*) as count FROM transfers WHERE origin_warehouse_id = ? OR dest_warehouse_id = ?').bind(id, id).first<{ count: number }>();
+  if (refCount!.count > 0) return error('该仓库已被调拨单引用，无法删除', 400);
+
+  await db.prepare('DELETE FROM warehouses WHERE id = ?').bind(id).run();
+  return success(null);
+}
+
+async function handleCarrierDelete(db: D1Database, id: string) {
+  const carrier = await db.prepare('SELECT * FROM carriers WHERE id = ?').bind(id).first();
+  if (!carrier) return error('Carrier not found', 404);
+
+  const refCount = await db.prepare('SELECT COUNT(*) as count FROM transfers WHERE carrier_id = ?').bind(id).first<{ count: number }>();
+  if (refCount!.count > 0) return error('该物流商已被调拨单引用，无法删除', 400);
+
+  await db.prepare('DELETE FROM carriers WHERE id = ?').bind(id).run();
+  return success(null);
+}
+
+async function handleTeamDelete(db: D1Database, id: string) {
+  const team = await db.prepare('SELECT * FROM teams WHERE id = ?').bind(id).first();
+  if (!team) return error('Team not found', 404);
+
+  const refCount = await db.prepare('SELECT COUNT(*) as count FROM transfers WHERE team_id = ?').bind(id).first<{ count: number }>();
+  if (refCount!.count > 0) return error('该团队已被调拨单引用，无法删除', 400);
+
+  await db.prepare('DELETE FROM teams WHERE id = ?').bind(id).run();
+  return success(null);
+}
+
 async function handleSlaRulesList(db: D1Database) {
   const rows = await db.prepare(`
     SELECT sr.*, w.name as warehouse_name, w.code as warehouse_code
@@ -976,7 +1005,10 @@ function matchRoute(path: string, method: string): { handler: string; params: Re
       if (method === 'GET') return { handler: 'carriersList', params: {} };
       if (method === 'POST') return { handler: 'carrierCreate', params: {} };
     }
-    if (segments.length === 2 && method === 'PUT') return { handler: 'carrierUpdate', params: { id: segments[1] } };
+    if (segments.length === 2) {
+      if (method === 'PUT') return { handler: 'carrierUpdate', params: { id: segments[1] } };
+      if (method === 'DELETE') return { handler: 'carrierDelete', params: { id: segments[1] } };
+    }
   }
 
   if (resource === 'warehouses') {
@@ -984,7 +1016,10 @@ function matchRoute(path: string, method: string): { handler: string; params: Re
       if (method === 'GET') return { handler: 'warehousesList', params: {} };
       if (method === 'POST') return { handler: 'warehouseCreate', params: {} };
     }
-    if (segments.length === 2 && method === 'PUT') return { handler: 'warehouseUpdate', params: { id: segments[1] } };
+    if (segments.length === 2) {
+      if (method === 'PUT') return { handler: 'warehouseUpdate', params: { id: segments[1] } };
+      if (method === 'DELETE') return { handler: 'warehouseDelete', params: { id: segments[1] } };
+    }
   }
 
   if (resource === 'teams') {
@@ -992,6 +1027,7 @@ function matchRoute(path: string, method: string): { handler: string; params: Re
       if (method === 'GET') return { handler: 'teamsList', params: {} };
       if (method === 'POST') return { handler: 'teamCreate', params: {} };
     }
+    if (segments.length === 2 && method === 'DELETE') return { handler: 'teamDelete', params: { id: segments[1] } };
   }
 
   if (resource === 'sla-rules') {
@@ -1063,11 +1099,14 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       case 'carriersList': return await handleCarriersList(db);
       case 'carrierCreate': return await handleCarrierCreate(db, body);
       case 'carrierUpdate': return await handleCarrierUpdate(db, route.params.id, body);
+      case 'carrierDelete': return await handleCarrierDelete(db, route.params.id);
       case 'warehousesList': return await handleWarehousesList(db);
       case 'warehouseCreate': return await handleWarehouseCreate(db, body);
       case 'warehouseUpdate': return await handleWarehouseUpdate(db, route.params.id, body);
+      case 'warehouseDelete': return await handleWarehouseDelete(db, route.params.id);
       case 'teamsList': return await handleTeamsList(db);
       case 'teamCreate': return await handleTeamCreate(db, body);
+      case 'teamDelete': return await handleTeamDelete(db, route.params.id);
       case 'slaRulesList': return await handleSlaRulesList(db);
       case 'slaRuleCreate': return await handleSlaRuleCreate(db, body);
       case 'slaRuleDelete': return await handleSlaRuleDelete(db, route.params.id);
