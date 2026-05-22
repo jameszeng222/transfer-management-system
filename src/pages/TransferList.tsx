@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import StatusBadge from '@/components/StatusBadge';
 import { Plus, Upload, Download, Search, X, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 export default function TransferList() {
   const navigate = useNavigate();
@@ -49,13 +50,24 @@ export default function TransferList() {
     setPage(1);
   };
 
-  const exportCsv = () => {
-    const params = new URLSearchParams();
-    Object.entries(filters).forEach(([k, v]) => {
-      if (v) params.set(k, v);
-    });
-    params.set('export', 'csv');
-    window.open(`/api/transfers?${params.toString()}`, '_blank');
+  const exportXlsx = () => {
+    const rows = transfers.map((t: any) => ({
+      '调拨单号': t.transfer_order_no || t.biz_order_no || '',
+      '第三方入库单': t.third_party_inbound_no || '',
+      '发货仓→目的仓': `${t.origin_warehouse_name || ''}→${t.dest_warehouse_name || ''}`,
+      '团队': t.team_name || '',
+      '品名': t.product_name || '',
+      '箱数': t.box_count ?? '',
+      '计划数量': t.planned_qty ?? '',
+      '来源': t.source || '',
+      '物流状态': t.logistics_status || '',
+      '物流异常': t.is_logistics_abnormal ? '是' : '否',
+      '上架异常': t.is_shelve_abnormal ? '是' : '否',
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '调拨单列表');
+    XLSX.writeFile(wb, `调拨单列表_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const transfers = data?.list || data?.transfers || [];
@@ -70,8 +82,8 @@ export default function TransferList() {
           <p className="page-desc">整合线上线下所有调拨单</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="btn-secondary btn-sm" onClick={exportCsv}>
-            <Download size={14} />导出CSV
+          <button className="btn-secondary btn-sm" onClick={exportXlsx}>
+            <Download size={14} />导出Excel
           </button>
           <button className="btn-secondary btn-sm" onClick={() => navigate('/transfers/create')}>
             <Upload size={14} />批量导入

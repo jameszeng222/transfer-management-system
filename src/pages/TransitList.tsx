@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import StatusBadge from '@/components/StatusBadge';
 import { Download, Search, X, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 export default function TransitList() {
   const navigate = useNavigate();
@@ -40,12 +41,33 @@ export default function TransitList() {
   };
 
   const exportData = () => {
-    const params = new URLSearchParams();
-    Object.entries(filters).forEach(([k, v]) => {
-      if (v) params.set(k, v);
+    const rows = list.flatMap((t: any) => {
+      const base = {
+        '调拨单号': t.transfer_order_no || t.biz_order_no || '',
+        '第三方入库单': t.third_party_inbound_no || '',
+        '发货仓→目的仓': `${t.origin_warehouse_name || ''}→${t.dest_warehouse_name || ''}`,
+        '物流商': t.carrier_name || '',
+        '物流状态': t.logistics_status || '',
+        '提货时间': t.pickup_time || '',
+        '预计签收': t.estimated_delivery || '',
+        '物流异常': t.is_logistics_abnormal ? '是' : '否',
+        '上架异常': t.is_shelve_abnormal ? '是' : '否',
+      };
+      const items = t.items || t.sku_items || [];
+      if (items.length > 0) {
+        return items.map((item: any) => ({
+          ...base,
+          'SKU': item.sku || '',
+          'SKU数量': item.quantity ?? '',
+          '箱号': item.box_no || '',
+        }));
+      }
+      return [base];
     });
-    params.set('export', 'csv');
-    window.open(`/api/transit/list?${params.toString()}`, '_blank');
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '在途明细');
+    XLSX.writeFile(wb, `在途明细_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const toggleExpand = (id: number) => {

@@ -1,27 +1,32 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
-import { Save, Plus, Trash2, Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { Save, Plus, Trash2, Upload, FileText, AlertCircle, CheckCircle, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 const templateFields = [
-  { field: 'biz_order_no', label: '调拨业务管理单号', required: true },
-  { field: 'transfer_order_no', label: '调拨单号', required: false },
-  { field: 'outbound_order_no', label: '出库单号', required: false },
-  { field: 'third_party_inbound_no', label: '第三方入库单号', required: false },
-  { field: 'source', label: '来源(API_WANYITONG/API_AMAZON/MANUAL/OTHER)', required: false },
-  { field: 'origin_warehouse_name', label: '发货仓', required: true },
-  { field: 'dest_warehouse_name', label: '目的仓', required: true },
-  { field: 'team_name', label: '团队', required: false },
-  { field: 'product_name', label: '品名', required: false },
-  { field: 'transport_type', label: '运输类型(SEA/AIR/RAIL/EXPRESS/TRUCK)', required: false },
-  { field: 'carrier_name', label: '物流商', required: false },
-  { field: 'carrier_order_no', label: '物流商单号', required: false },
-  { field: 'box_count', label: '箱数', required: false },
-  { field: 'planned_qty', label: '计划数量', required: false },
-  { field: 'is_customs_declared', label: '是否报关(true/false)', required: false },
-  { field: 'customs_factory', label: '报关工厂', required: false },
-  { field: 'sla_days', label: '时效要求(天)', required: false },
-  { field: 'order_remark', label: '备注', required: false },
+  { field: 'biz_order_no', label: '调拨业务管理单号', required: true, example: 'WYT-20260522-001' },
+  { field: 'transfer_order_no', label: '调拨单号', required: false, example: 'WYT-TF-20260522' },
+  { field: 'outbound_order_no', label: '出库单号', required: false, example: '' },
+  { field: 'third_party_inbound_no', label: '第三方入库单号', required: false, example: 'FBA15ABC123' },
+  { field: 'source', label: '来源', required: false, example: 'MANUAL' },
+  { field: 'origin_warehouse_name', label: '发货仓', required: true, example: '深圳仓' },
+  { field: 'dest_warehouse_name', label: '目的仓', required: true, example: '美国-LAX9' },
+  { field: 'team_name', label: '团队', required: false, example: '团队A' },
+  { field: 'product_name', label: '品名', required: false, example: '蓝牙耳机/充电宝' },
+  { field: 'transport_type', label: '运输类型', required: false, example: 'SEA' },
+  { field: 'carrier_name', label: '物流商', required: false, example: '万邑通' },
+  { field: 'carrier_order_no', label: '物流商单号', required: false, example: '' },
+  { field: 'box_count', label: '箱数', required: false, example: '50' },
+  { field: 'planned_qty', label: '计划数量', required: false, example: '1000' },
+  { field: 'box_spec', label: '箱规', required: false, example: '60x40x40cm' },
+  { field: 'is_customs_declared', label: '是否报关', required: false, example: 'true/false' },
+  { field: 'customs_factory', label: '报关工厂', required: false, example: '' },
+  { field: 'sla_days', label: '时效要求(天)', required: false, example: '30' },
+  { field: 'sku', label: 'SKU', required: false, example: 'SKU-BT-001' },
+  { field: 'sku_quantity', label: 'SKU数量', required: false, example: '500' },
+  { field: 'box_no', label: '箱号', required: false, example: 'B1-B25' },
+  { field: 'order_remark', label: '备注', required: false, example: '' },
 ];
 
 type TabKey = 'create' | 'import';
@@ -302,24 +307,92 @@ function ImportForm() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
 
+  const downloadTemplate = () => {
+    const headerRow = templateFields.map((f) => f.label + (f.required ? '*' : ''));
+    const exampleRow = templateFields.map((f) => f.example);
+    const descRow = templateFields.map((f) => {
+      let desc = f.field;
+      if (f.required) desc += '(必填)';
+      if (f.field === 'source') desc += '(API_WANYITONG/API_AMAZON/MANUAL/OTHER)';
+      if (f.field === 'transport_type') desc += '(SEA/AIR/RAIL/EXPRESS/TRUCK)';
+      if (f.field === 'is_customs_declared') desc += '(true/false)';
+      return desc;
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet([headerRow, exampleRow, descRow]);
+    ws['!cols'] = templateFields.map(() => ({ wch: 20 }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '调拨单导入模板');
+    XLSX.writeFile(wb, '调拨单导入模板.xlsx');
+  };
+
   const handleFile = async (file: File) => {
     setImporting(true);
     setError('');
     setResult(null);
     try {
-      const text = await file.text();
-      const rows = text.split('\n').filter((r) => r.trim());
-      if (rows.length < 2) throw new Error('文件内容为空');
-      const headers = rows[0].split(',').map((h) => h.trim());
-      const items = rows.slice(1).map((row) => {
-        const values = row.split(',').map((v) => v.trim());
-        const obj: any = {};
-        headers.forEach((h, i) => {
-          obj[h] = values[i] || '';
-        });
-        return obj;
+      const buffer = await file.arrayBuffer();
+      const wb = XLSX.read(buffer, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows: any[] = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if (rows.length === 0) throw new Error('文件内容为空');
+
+      const labelToField: Record<string, string> = {};
+      templateFields.forEach((f) => {
+        labelToField[f.label] = f.field;
+        labelToField[f.label + '*'] = f.field;
       });
-      const res = await api.batchImportTransfers({ items });
+
+      const transferMap = new Map<string, any>();
+      rows.forEach((row) => {
+        const obj: any = {};
+        Object.entries(row).forEach(([key, val]) => {
+          const field = labelToField[key.trim()] || key.trim();
+          obj[field] = String(val).trim();
+        });
+
+        const bizKey = obj.biz_order_no;
+        if (!bizKey) return;
+
+        if (!transferMap.has(bizKey)) {
+          transferMap.set(bizKey, {
+            biz_order_no: bizKey,
+            transfer_order_no: obj.transfer_order_no || '',
+            outbound_order_no: obj.outbound_order_no || '',
+            third_party_inbound_no: obj.third_party_inbound_no || '',
+            source: obj.source || 'MANUAL',
+            origin_warehouse_name: obj.origin_warehouse_name || '',
+            dest_warehouse_name: obj.dest_warehouse_name || '',
+            team_name: obj.team_name || '',
+            product_name: obj.product_name || '',
+            transport_type: obj.transport_type || '',
+            carrier_name: obj.carrier_name || '',
+            carrier_order_no: obj.carrier_order_no || '',
+            box_count: obj.box_count ? Number(obj.box_count) : 0,
+            planned_qty: obj.planned_qty ? Number(obj.planned_qty) : 0,
+            box_spec: obj.box_spec || '',
+            is_customs_declared: obj.is_customs_declared === 'true' ? 1 : 0,
+            customs_factory: obj.customs_factory || '',
+            sla_days: obj.sla_days ? Number(obj.sla_days) : 0,
+            order_remark: obj.order_remark || '',
+            items: [] as any[],
+          });
+        }
+
+        const transfer = transferMap.get(bizKey)!;
+        if (obj.sku) {
+          transfer.items.push({
+            sku: obj.sku,
+            quantity: obj.sku_quantity ? Number(obj.sku_quantity) : 0,
+            box_no: obj.box_no || '',
+          });
+        }
+      });
+
+      const transfers = Array.from(transferMap.values());
+      if (transfers.length === 0) throw new Error('未找到有效的调拨单数据');
+
+      const res = await api.batchImportTransfers({ transfers });
       setResult(res);
     } catch (e: any) {
       setError(e.message || '导入失败');
@@ -342,6 +415,12 @@ function ImportForm() {
 
   return (
     <>
+      <div className="flex items-center gap-3 mb-6">
+        <button className="btn-primary btn-sm flex items-center gap-1.5" onClick={downloadTemplate}>
+          <Download size={14} />下载导入模板
+        </button>
+      </div>
+
       <div
         className={`border-2 border-dashed rounded-2xl p-12 text-center transition-colors mb-6 bg-white ${
           dragging ? 'border-blue-400 bg-blue-50/50' : 'border-slate-200 hover:border-slate-300'
@@ -353,11 +432,12 @@ function ImportForm() {
         <div className={`mx-auto mb-4 w-16 h-16 rounded-2xl flex items-center justify-center ${dragging ? 'bg-blue-500' : 'bg-slate-100'}`}>
           <Upload size={32} className={dragging ? 'text-white' : 'text-slate-400'} />
         </div>
-        <p className="text-sm text-slate-600 mb-2">拖拽CSV文件到此处，或</p>
+        <p className="text-sm text-slate-600 mb-2">拖拽Excel文件到此处，或</p>
         <button className="btn-primary btn-sm" onClick={() => fileRef.current?.click()}>
           选择文件
         </button>
-        <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={onFileChange} />
+        <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={onFileChange} />
+        <p className="text-xs text-slate-400 mt-3">支持 .xlsx / .xls 格式</p>
         {importing && (
           <div className="mt-4 flex items-center justify-center gap-2 text-sm text-blue-600">
             <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -384,7 +464,7 @@ function ImportForm() {
             <CheckCircle size={20} className="text-emerald-500 shrink-0" />
             <div>
               <p className="text-sm font-medium text-emerald-600">导入成功</p>
-              <p className="text-xs text-slate-500 mt-1">成功导入 {result.success_count ?? result.successCount ?? result.length ?? 0} 条</p>
+              <p className="text-xs text-slate-500 mt-1">成功导入 {Array.isArray(result) ? result.length : (result.success_count ?? result.successCount ?? 0)} 条</p>
             </div>
           </div>
         </div>
@@ -401,6 +481,7 @@ function ImportForm() {
               <tr>
                 <th>字段名</th>
                 <th>说明</th>
+                <th>示例</th>
                 <th>必填</th>
               </tr>
             </thead>
@@ -409,6 +490,7 @@ function ImportForm() {
                 <tr key={f.field}>
                   <td className="font-mono text-xs text-slate-600">{f.field}</td>
                   <td>{f.label}</td>
+                  <td className="text-xs text-slate-400">{f.example}</td>
                   <td>{f.required ? <span className="text-red-500 text-xs">是</span> : <span className="text-slate-400 text-xs">否</span>}</td>
                 </tr>
               ))}
