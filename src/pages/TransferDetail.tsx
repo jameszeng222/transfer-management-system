@@ -253,37 +253,62 @@ export default function TransferDetail() {
         </div>
       </div>
 
-      {data.items && data.items.length > 0 && (
-        <div className="card mb-6">
-          <div className="card-header">
-            <h3 className="card-title">SKU明细</h3>
-          </div>
-          <div className="card-body p-0">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>SKU</th>
-                  <th>数量</th>
-                  <th>箱号</th>
-                  <th>箱规</th>
-                  <th>总箱数</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.items.map((item: any, idx: number) => (
-                  <tr key={idx}>
-                    <td className="font-medium text-slate-800">{item.sku || '-'}</td>
-                    <td>{item.quantity ?? '-'}</td>
-                    <td>{item.box_no ?? '-'}</td>
-                    <td>{data.box_spec || '-'}</td>
-                    <td>{data.box_count ?? '-'}</td>
+      {data.items && data.items.length > 0 && (() => {
+        const boxMap = new Map<string, any[]>();
+        data.items.forEach((item: any) => {
+          const key = item.box_no || '';
+          if (!boxMap.has(key)) boxMap.set(key, []);
+          boxMap.get(key)!.push(item);
+        });
+        const boxEntries = Array.from(boxMap.entries());
+        return (
+          <div className="card mb-6">
+            <div className="card-header">
+              <h3 className="card-title">SKU明细</h3>
+              <span className="text-xs text-slate-400">{boxEntries.length}箱 / {data.items.length}个SKU / 共{data.planned_qty ?? data.items.reduce((s: number, i: any) => s + (i.quantity || 0), 0)}件</span>
+            </div>
+            <div className="card-body p-0">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>箱号</th>
+                    <th>箱规</th>
+                    <th>SKU</th>
+                    <th>数量</th>
+                    <th>箱内合计</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {boxEntries.map(([boxNo, items], bIdx) => {
+                    const boxTotal = items.reduce((s: number, i: any) => s + (i.quantity || 0), 0);
+                    const isMixed = items.length > 1;
+                    return items.map((item: any, sIdx: number) => (
+                      <tr key={`${bIdx}-${sIdx}`} className={isMixed && items.length > 1 ? 'bg-amber-50/30' : ''}>
+                        {sIdx === 0 ? (
+                          <>
+                            <td rowSpan={items.length} className="font-medium text-slate-800 align-top">
+                              <span className="inline-flex items-center gap-1.5">
+                                {isMixed && <span className="inline-block px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded">混装</span>}
+                                {boxNo || '-'}
+                              </span>
+                            </td>
+                            <td rowSpan={items.length} className="text-slate-500 align-top">{data.box_spec || '-'}</td>
+                          </>
+                        ) : null}
+                        <td className="font-mono text-slate-700">{item.sku}</td>
+                        <td>{item.quantity}</td>
+                        {sIdx === 0 ? (
+                          <td rowSpan={items.length} className="font-medium text-slate-800 align-top">{boxTotal}</td>
+                        ) : null}
+                      </tr>
+                    ));
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {(!data.items || data.items.length === 0) && data.box_spec && (
         <div className="card mb-6">

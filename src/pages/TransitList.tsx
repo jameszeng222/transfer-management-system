@@ -184,20 +184,42 @@ export default function TransitList() {
                           ) : <span className="text-xs text-slate-400">-</span>}
                         </td>
                       </tr>
-                      {isExpanded && skuItems.length > 0 && (
-                        skuItems.map((item: any, idx: number) => (
-                          <tr key={`${t.id}-sku-${idx}`} className="bg-slate-50/50">
-                            <td></td>
-                            <td colSpan={2} className="text-slate-400 text-[12px]">
-                              {idx === 0 && <span className="text-[11px] text-blue-500 font-medium mr-1">SKU</span>}
-                            </td>
-                            <td className="font-mono text-[12px] text-slate-700">{item.sku}</td>
-                            <td className="text-[12px] text-slate-500">×{item.quantity}</td>
-                            <td className="text-[12px] text-slate-400">{item.box_no || '-'}</td>
-                            <td colSpan={4}></td>
-                          </tr>
-                        ))
-                      )}
+                      {isExpanded && skuItems.length > 0 && (() => {
+                        const boxMap = new Map<string, any[]>();
+                        skuItems.forEach((item: any) => {
+                          const key = item.box_no || '';
+                          if (!boxMap.has(key)) boxMap.set(key, []);
+                          boxMap.get(key)!.push(item);
+                        });
+                        return Array.from(boxMap.entries()).map(([boxNo, items], bIdx) => {
+                          const boxTotal = items.reduce((s: number, i: any) => s + (i.quantity || 0), 0);
+                          const isMixed = items.length > 1;
+                          return (
+                            <tr key={`${t.id}-box-${bIdx}`} className="bg-slate-50/50">
+                              <td></td>
+                              <td colSpan={9} className="py-1.5">
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                                  <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-slate-600">
+                                    {isMixed && <span className="inline-block px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded">混装</span>}
+                                    <span className="text-slate-400">箱号</span> {boxNo || '-'}
+                                    <span className="text-slate-300 mx-1">|</span>
+                                    <span className="text-slate-400">箱规</span> {t.box_spec || '-'}
+                                    <span className="text-slate-300 mx-1">|</span>
+                                    <span className="text-slate-400">合计</span> {boxTotal}
+                                  </span>
+                                  {items.map((item: any, sIdx: number) => (
+                                    <span key={sIdx} className="inline-flex items-center gap-1 text-[12px]">
+                                      <span className="font-mono text-blue-600">{item.sku}</span>
+                                      <span className="text-slate-400">×</span>
+                                      <span className="text-slate-700">{item.quantity}</span>
+                                    </span>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        });
+                      })()}
                       {isExpanded && skuItems.length === 0 && (
                         <tr key={`${t.id}-no-sku`} className="bg-slate-50/50">
                           <td></td>
