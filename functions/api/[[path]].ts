@@ -607,7 +607,26 @@ async function handleTransitList(db: D1Database, url: string) {
     ORDER BY t.created_at DESC LIMIT ? OFFSET ?
   `).bind(...params, sizeNum, offset).all();
 
-  return success({ list: rows.results, total: totalRow!.total, page: pageNum, pageSize: sizeNum });
+  const transfers = rows.results as any[];
+  const transferIds = transfers.map((t) => t.id);
+
+  const itemsMap: Record<number, any[]> = {};
+  if (transferIds.length > 0) {
+    const itemsRows = await db.prepare(
+      `SELECT * FROM transfer_items WHERE transfer_id IN (${transferIds.map(() => '?').join(',')})`
+    ).bind(...transferIds).all();
+    for (const item of itemsRows.results as any[]) {
+      if (!itemsMap[item.transfer_id]) itemsMap[item.transfer_id] = [];
+      itemsMap[item.transfer_id].push(item);
+    }
+  }
+
+  const list = transfers.map((t) => ({
+    ...t,
+    sku_items: itemsMap[t.id] || [],
+  }));
+
+  return success({ list, total: totalRow!.total, page: pageNum, pageSize: sizeNum });
 }
 
 async function handleTransitByWarehouse(db: D1Database) {
