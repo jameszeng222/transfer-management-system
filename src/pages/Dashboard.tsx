@@ -111,11 +111,29 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-4 mb-6">
-        {stats.map((stat, i) => {
+      <div className="grid grid-cols-4 gap-4 mb-4">
+        {stats.slice(0, 4).map((stat, i) => {
           const Icon = stat.icon;
           return (
             <div key={stat.label} className="stat-card animate-fade-in-up" style={{ animationDelay: `${i * 60}ms` }}>
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-xl ${stat.iconBg} flex items-center justify-center`}>
+                  <Icon size={18} className={stat.iconColor} />
+                </div>
+                <div className="min-w-0">
+                  <div className="stat-label">{stat.label}</div>
+                  <div className="stat-value">{stat.value}</div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {stats.slice(4).map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div key={stat.label} className="stat-card animate-fade-in-up" style={{ animationDelay: `${(i + 4) * 60}ms` }}>
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-xl ${stat.iconBg} flex items-center justify-center`}>
                   <Icon size={18} className={stat.iconColor} />

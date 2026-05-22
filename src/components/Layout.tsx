@@ -238,8 +238,10 @@ export default function Layout() {
         </div>
       </aside>
 
-      <div className="ml-[300px] px-12 py-10 max-w-[1400px]">
-        <Outlet />
+      <div className="ml-[300px] min-h-screen">
+        <div className="mx-auto max-w-[1200px] px-10 py-10">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
