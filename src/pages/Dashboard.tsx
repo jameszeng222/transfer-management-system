@@ -265,7 +265,7 @@ export default function Dashboard() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>调拨单</th>
+                    <th>业务单号</th>
                     <th>异常类型</th>
                     <th>备注</th>
                     <th>路线</th>

@@ -110,8 +110,8 @@ export default function TransitAbnormal() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>调拨单</th>
-                <th>第三方入库单号</th>
+                <th>业务单号</th>
+                <th>第三方入库单</th>
                 <th>异常类型</th>
                 <th>异常备注</th>
                 <th>时间</th>

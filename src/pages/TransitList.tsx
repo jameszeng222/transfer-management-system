@@ -106,17 +106,17 @@ export default function TransitList() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>调拨单</th>
-                <th>第三方入库单号</th>
+                <th>业务单号</th>
+                <th>第三方入库单</th>
                 <th>发货仓→目的仓</th>
                 <th>物流商</th>
                 <th>物流状态</th>
                 <th>提货时间</th>
                 <th>预计签收</th>
                 <th>物流异常</th>
-                <th>物流异常备注</th>
+                <th>异常备注</th>
                 <th>上架异常</th>
-                <th>上架异常备注</th>
+                <th>上架备注</th>
               </tr>
             </thead>
             <tbody>

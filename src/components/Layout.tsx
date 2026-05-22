@@ -143,35 +143,35 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-[#F7F9FB]">
-      <aside className="fixed left-0 top-0 bottom-0 w-[300px] bg-white flex flex-col z-30 border-r border-slate-100/80">
-        <div className="flex items-center gap-4 px-8 h-[80px] shrink-0">
-          <div className="w-11 h-11 rounded-xl bg-blue-500 flex items-center justify-center shadow-sm">
-            <ArrowLeftRight size={22} className="text-white" />
+      <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-white flex flex-col z-30 border-r border-slate-100/80">
+        <div className="flex items-center gap-3 px-6 h-[72px] shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center shadow-sm">
+            <ArrowLeftRight size={18} className="text-white" />
           </div>
           <div>
-            <div className="text-[16px] font-semibold text-slate-900 leading-tight">调拨管理系统</div>
-            <div className="text-[12px] text-slate-400 leading-tight mt-0.5">Transfer Management</div>
+            <div className="text-[14px] font-semibold text-slate-900 leading-tight">调拨管理系统</div>
+            <div className="text-[11px] text-slate-400 leading-tight mt-0.5">Transfer Management</div>
           </div>
         </div>
 
-        <nav className="flex-1 py-5 px-5 overflow-y-auto overflow-x-hidden">
+        <nav className="flex-1 py-4 px-4 overflow-y-auto overflow-x-hidden">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const active = isParentActive(item);
             const expanded = expandedMenus.includes(item.label);
 
             return (
-              <div key={item.label} className="mb-1">
+              <div key={item.label} className="mb-0.5">
                 {item.path ? (
                   <div
-                    className={`flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-[15px] font-medium cursor-pointer transition-colors ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium cursor-pointer transition-colors ${
                       active
                         ? 'bg-blue-50 text-blue-600'
                         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
                     }`}
                     onClick={() => navigate(item.path)}
                   >
-                    <Icon size={20} className={`shrink-0 ${active ? 'text-blue-500' : ''}`} />
+                    <Icon size={18} className={`shrink-0 ${active ? 'text-blue-500' : ''}`} />
                     <span className="flex-1">{item.label}</span>
                     {active && (
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
@@ -180,32 +180,32 @@ export default function Layout() {
                 ) : (
                   <>
                     <div
-                      className={`flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-[15px] font-medium cursor-pointer transition-colors ${
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium cursor-pointer transition-colors ${
                         active
                           ? 'bg-blue-50 text-blue-600'
                           : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
                       }`}
                       onClick={() => toggleMenu(item.label)}
                     >
-                      <Icon size={20} className={`shrink-0 ${active ? 'text-blue-500' : ''}`} />
+                      <Icon size={18} className={`shrink-0 ${active ? 'text-blue-500' : ''}`} />
                       <span className="flex-1">{item.label}</span>
                       {active && !expanded && (
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                       )}
                       {expanded ? (
-                        <ChevronDown size={16} className="text-slate-400" />
+                        <ChevronDown size={14} className="text-slate-400" />
                       ) : (
-                        <ChevronRight size={16} className="text-slate-400" />
+                        <ChevronRight size={14} className="text-slate-400" />
                       )}
                     </div>
                     {expanded && item.children && (
-                      <div className="ml-5 pl-4 border-l border-slate-200 mt-1 space-y-0.5">
+                      <div className="ml-4 pl-3 border-l border-slate-200 mt-0.5 space-y-0.5">
                         {item.children.map((child) => {
                           const childActive = isActive(child.path);
                           return (
                             <div
                               key={child.path}
-                              className={`px-4 py-2.5 rounded-lg text-[14px] font-medium cursor-pointer transition-colors ${
+                              className={`px-3 py-2 rounded-md text-[13px] font-medium cursor-pointer transition-colors ${
                                 childActive
                                   ? 'bg-blue-50 text-blue-600'
                                   : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
@@ -225,20 +225,20 @@ export default function Layout() {
           })}
         </nav>
 
-        <div className="border-t border-slate-100 px-6 py-5 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-full bg-slate-50 flex items-center justify-center">
-              <span className="text-[14px] font-semibold text-slate-500">管</span>
+        <div className="border-t border-slate-100 px-5 py-4 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center">
+              <span className="text-[13px] font-semibold text-slate-500">管</span>
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-medium text-slate-700 truncate">管理员</div>
-              <div className="text-[12px] text-slate-400 truncate">admin@company.com</div>
+              <div className="text-[13px] font-medium text-slate-700 truncate">管理员</div>
+              <div className="text-[11px] text-slate-400 truncate">admin@company.com</div>
             </div>
           </div>
         </div>
       </aside>
 
-      <div className="ml-[300px] min-h-screen">
+      <div className="ml-[240px] min-h-screen">
         <div className="mx-auto max-w-[1200px] px-10 py-10">
           <Outlet />
         </div>

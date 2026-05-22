@@ -144,9 +144,9 @@ export default function TransferList() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>调拨业务管理单</th>
-                <th>调拨单</th>
-                <th>第三方入库单号</th>
+                <th>业务单号</th>
+                <th>调拨单号</th>
+                <th>第三方入库单</th>
                 <th>发货仓→目的仓</th>
                 <th>团队</th>
                 <th>品名</th>

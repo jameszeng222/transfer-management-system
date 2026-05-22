@@ -143,7 +143,7 @@ export default function Reconciliation() {
                 <th className="w-10">
                   <input type="checkbox" checked={selectedIds.length === list.length && list.length > 0} onChange={toggleAll} className="rounded border-slate-300" />
                 </th>
-                <th>调拨单</th>
+                <th>业务单号</th>
                 <th>物流商</th>
                 <th>预估运费</th>
                 <th>最终运费</th>
