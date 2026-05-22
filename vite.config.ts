@@ -13,17 +13,17 @@ export default defineConfig({
         ],
       },
     }),
-    traeBadgePlugin({
-      variant: 'dark',
-      position: 'bottom-right',
-      prodOnly: true,
-      clickable: true,
-      clickUrl: 'https://www.trae.ai/solo?showJoin=1',
-      autoTheme: true,
-      autoThemeTarget: '#root'
-    }), 
     tsconfigPaths(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+      }
+    }
+  },
   server: {
     proxy: {
       '/api': {

@@ -5,6 +5,10 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   body {
     font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
     background-color: #F7F9FB;
