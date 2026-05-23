@@ -15,6 +15,7 @@ import SettingWarehouse from '@/pages/SettingWarehouse';
 import SettingCarrier from '@/pages/SettingCarrier';
 import SettingTeam from '@/pages/SettingTeam';
 import SettingUser from '@/pages/SettingUser';
+import WinitInbound from '@/pages/WinitInbound';
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/settings/carriers" element={<SettingCarrier />} />
           <Route path="/settings/teams" element={<SettingTeam />} />
           <Route path="/settings/users" element={<SettingUser />} />
+          <Route path="/winit/inbound" element={<WinitInbound />} />
         </Route>
       </Routes>
     </BrowserRouter>

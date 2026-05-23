@@ -1,5 +1,9 @@
 interface Env {
   DB: D1Database;
+  winit_app_key: string;
+  winit_token: string;
+  winit_client_id: string;
+  winit_client_secret: string;
 }
 
 function addDays(dateStr: string | null, days: number): string | null {
@@ -31,7 +35,290 @@ function getQueryParams(url: string) {
   return params;
 }
 
+function md5Hex(str: string): string {
+  function md5cycle(x: number[], k: number[]) {
+    let a = x[0], b = x[1], c = x[2], d = x[3];
+    a = ff(a, b, c, d, k[0], 7, -680876936); d = ff(d, a, b, c, k[1], 12, -389564586); c = ff(c, d, a, b, k[2], 17, 606105819); b = ff(b, c, d, a, k[3], 22, -1044525330);
+    a = ff(a, b, c, d, k[4], 7, -176418897); d = ff(d, a, b, c, k[5], 12, 1200080426); c = ff(c, d, a, b, k[6], 17, -1473231341); b = ff(b, c, d, a, k[7], 22, -45705983);
+    a = ff(a, b, c, d, k[8], 7, 1770035416); d = ff(d, a, b, c, k[9], 12, -1958414417); c = ff(c, d, a, b, k[10], 17, -42063); b = ff(b, c, d, a, k[11], 22, -1990404162);
+    a = ff(a, b, c, d, k[12], 7, 1804603682); d = ff(d, a, b, c, k[13], 12, -40341101); c = ff(c, d, a, b, k[14], 17, -1502002290); b = ff(b, c, d, a, k[15], 22, 1236535329);
+    a = gg(a, b, c, d, k[1], 5, -165796510); d = gg(d, a, b, c, k[6], 9, -1069501632); c = gg(c, d, a, b, k[11], 14, 643717713); b = gg(b, c, d, a, k[0], 20, -373897302);
+    a = gg(a, b, c, d, k[5], 5, -701558691); d = gg(d, a, b, c, k[10], 9, 38016083); c = gg(c, d, a, b, k[15], 14, -660478335); b = gg(b, c, d, a, k[4], 20, -405537848);
+    a = gg(a, b, c, d, k[9], 5, 568446438); d = gg(d, a, b, c, k[14], 9, -1019803690); c = gg(c, d, a, b, k[3], 14, -187363961); b = gg(b, c, d, a, k[8], 20, 1163531501);
+    a = gg(a, b, c, d, k[13], 5, -1444681467); d = gg(d, a, b, c, k[2], 9, -51403784); c = gg(c, d, a, b, k[7], 14, 1735328473); b = gg(b, c, d, a, k[12], 20, -1926607734);
+    a = hh(a, b, c, d, k[5], 4, -378558); d = hh(d, a, b, c, k[8], 11, -2022574463); c = hh(c, d, a, b, k[11], 16, 1839030562); b = hh(b, c, d, a, k[14], 23, -35309556);
+    a = hh(a, b, c, d, k[1], 4, -1530992060); d = hh(d, a, b, c, k[4], 11, 1272893353); c = hh(c, d, a, b, k[7], 16, -155497632); b = hh(b, c, d, a, k[10], 23, -1094730640);
+    a = hh(a, b, c, d, k[13], 4, 681279174); d = hh(d, a, b, c, k[0], 11, -358537222); c = hh(c, d, a, b, k[3], 16, -722521979); b = hh(b, c, d, a, k[6], 23, 76029189);
+    a = hh(a, b, c, d, k[9], 4, -640364487); d = hh(d, a, b, c, k[12], 11, -421815835); c = hh(c, d, a, b, k[15], 16, 530742520); b = hh(b, c, d, a, k[2], 23, -995338651);
+    a = ii(a, b, c, d, k[0], 6, -198630844); d = ii(d, a, b, c, k[7], 10, 1126891415); c = ii(c, d, a, b, k[14], 15, -1416354905); b = ii(b, c, d, a, k[5], 21, -57434055);
+    a = ii(a, b, c, d, k[12], 6, 1700485571); d = ii(d, a, b, c, k[3], 10, -1894986606); c = ii(c, d, a, b, k[10], 15, -1051523); b = ii(b, c, d, a, k[1], 21, -2054922799);
+    a = ii(a, b, c, d, k[8], 6, 1873313359); d = ii(d, a, b, c, k[15], 10, -30611744); c = ii(c, d, a, b, k[6], 15, -1560198380); b = ii(b, c, d, a, k[13], 21, 1309151649);
+    a = ii(a, b, c, d, k[4], 6, -145523070); d = ii(d, a, b, c, k[11], 10, -1120210379); c = ii(c, d, a, b, k[2], 15, 718787259); b = ii(b, c, d, a, k[9], 21, -343485551);
+    x[0] = add32(a, x[0]); x[1] = add32(b, x[1]); x[2] = add32(c, x[2]); x[3] = add32(d, x[3]);
+  }
+  function cmn(q: number, a: number, b: number, x: number, s: number, t: number) { a = add32(add32(a, q), add32(x, t)); return add32((a << s) | (a >>> (32 - s)), b); }
+  function ff(a: number, b: number, c: number, d: number, x: number, s: number, t: number) { return cmn((b & c) | ((~b) & d), a, b, x, s, t); }
+  function gg(a: number, b: number, c: number, d: number, x: number, s: number, t: number) { return cmn((b & d) | (c & (~d)), a, b, x, s, t); }
+  function hh(a: number, b: number, c: number, d: number, x: number, s: number, t: number) { return cmn(b ^ c ^ d, a, b, x, s, t); }
+  function ii(a: number, b: number, c: number, d: number, x: number, s: number, t: number) { return cmn(c ^ (b | (~d)), a, b, x, s, t); }
+  function add32(a: number, b: number) { return (a + b) & 0xFFFFFFFF; }
+  function md5blk(s: string) {
+    const md5blks: number[] = [];
+    for (let i = 0; i < 64; i += 4) md5blks[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i + 1) << 8) + (s.charCodeAt(i + 2) << 16) + (s.charCodeAt(i + 3) << 24);
+    return md5blks;
+  }
+  function rhex(n: number) {
+    const hex_chr = '0123456789abcdef';
+    let s = '';
+    for (let j = 0; j < 4; j++) s += hex_chr.charAt((n >> (j * 8 + 4)) & 0x0F) + hex_chr.charAt((n >> (j * 8)) & 0x0F);
+    return s;
+  }
+  function hex(x: number[]) { return x.map(rhex).join(''); }
+  let n = str.length;
+  let state = [1732584193, -271733879, -1732584194, 271733878];
+  let i: number;
+  for (i = 64; i <= n; i += 64) md5cycle(state, md5blk(str.substring(i - 64, i)));
+  str = str.substring(i - 64);
+  const tail = new Array(16).fill(0);
+  for (i = 0; i < str.length; i++) tail[i >> 2] |= str.charCodeAt(i) << ((i % 4) << 3);
+  tail[i >> 2] |= 0x80 << ((i % 4) << 3);
+  if (i > 55) { md5cycle(state, tail); for (i = 0; i < 16; i++) tail[i] = 0; }
+  tail[14] = n * 8;
+  md5cycle(state, tail);
+  return hex(state);
+}
+
+async function callWinitApi(env: Env, action: string, data: any) {
+  const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const params: Record<string, string> = {
+    action,
+    app_key: env.winit_app_key || '',
+    client_id: env.winit_client_id || '',
+    data: JSON.stringify(data),
+    format: 'json',
+    language: 'zh_CN',
+    platform: 'OWNERERP',
+    sign_method: 'md5',
+    timestamp,
+    version: '1.0',
+  };
+  const clientSign = md5Hex(params.client_id + (env.winit_client_secret || ''));
+  params.client_sign = clientSign;
+  const signStr = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join('') + (env.winit_client_secret || '');
+  params.sign = md5Hex(signStr);
+  const response = await fetch('https://openapi.winit.com.cn/openapi/service', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  const result = await response.json() as any;
+  if (result.code !== '0' && result.code !== 0) {
+    throw new Error(result.msg || `Winit API error: ${result.code}`);
+  }
+  return result.data;
+}
+
 const IN_TRANSIT_STATUSES = ['PICKED_UP', 'DEPARTED', 'ARRIVED_PORT', 'CLEARED', 'LAST_MILE', 'DELIVERED', 'UNLOADED'];
+
+async function handleWinitInboundList(env: Env, url: string) {
+  const params = getQueryParams(url);
+  const data: any = {
+    pageParams: {
+      pageNo: params.pageNo || '1',
+      pageSize: params.pageSize || '20',
+    },
+  };
+  if (params.destinationWarehouseCode) data.destinationWarehouseCode = params.destinationWarehouseCode;
+  if (params.orderCreateDateStart) data.orderCreateDateStart = params.orderCreateDateStart;
+  if (params.orderCreateDateEnd) data.orderCreateDateEnd = params.orderCreateDateEnd;
+  try {
+    const result = await callWinitApi(env, 'winit.wh.inbound.getOrderList', data);
+    return success(result);
+  } catch (e: any) {
+    return error(e.message || '查询万邑通入库单失败', 500);
+  }
+}
+
+async function handleWinitInboundDetail(env: Env, url: string) {
+  const params = getQueryParams(url);
+  const orderNo = params.orderNo;
+  if (!orderNo) return error('orderNo is required', 400);
+  try {
+    const result = await callWinitApi(env, 'winit.wh.inbound.getOrderDetail', {
+      orderNo,
+      isIncludePackage: 'Y',
+    });
+    return success(result);
+  } catch (e: any) {
+    return error(e.message || '查询万邑通入库单详情失败', 500);
+  }
+}
+
+async function handleWinitInboundSync(env: Env, db: D1Database) {
+  try {
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS winit_inbound_orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_no TEXT UNIQUE,
+        seller_order_no TEXT,
+        status TEXT,
+        order_type TEXT,
+        destination_warehouse_code TEXT,
+        destination_warehouse_name TEXT,
+        inspection_warehouse_code TEXT,
+        inspection_warehouse_name TEXT,
+        winit_product_code TEXT,
+        winit_product_name TEXT,
+        total_package_qty INTEGER DEFAULT 0,
+        total_merchandise_qty INTEGER DEFAULT 0,
+        total_item_qty INTEGER DEFAULT 0,
+        is_completed TEXT DEFAULT 'N',
+        created_date TEXT,
+        plan_shelf_completed_date TEXT,
+        shelve_completed_date TEXT,
+        raw_data TEXT,
+        synced_at TEXT DEFAULT (datetime('now')),
+        created_at TEXT DEFAULT (datetime('now'))
+      )
+    `).run();
+
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS winit_inbound_packages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_no TEXT,
+        package_no TEXT,
+        seller_case_no TEXT,
+        status TEXT,
+        unloading_time TEXT,
+        shelves_time TEXT,
+        weight REAL,
+        length REAL,
+        width REAL,
+        height REAL,
+        raw_data TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      )
+    `).run();
+
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS winit_inbound_merchandise (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_no TEXT,
+        package_no TEXT,
+        sku TEXT,
+        merchandise_code TEXT,
+        specification TEXT,
+        quantity INTEGER DEFAULT 0,
+        inspection_qty INTEGER DEFAULT 0,
+        actual_quantity INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now'))
+      )
+    `).run();
+
+    let pageNo = 1;
+    let totalSynced = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const result = await callWinitApi(env, 'winit.wh.inbound.getOrderList', {
+        pageParams: { pageNo: String(pageNo), pageSize: '50' },
+      });
+
+      const orders = result?.list || [];
+      if (orders.length === 0) { hasMore = false; break; }
+
+      for (const order of orders) {
+        const orderNo = order.orderNo;
+        const detail = await callWinitApi(env, 'winit.wh.inbound.getOrderDetail', {
+          orderNo,
+          isIncludePackage: 'Y',
+        });
+
+        await db.prepare(`
+          INSERT INTO winit_inbound_orders (order_no, seller_order_no, status, order_type, destination_warehouse_code, destination_warehouse_name, inspection_warehouse_code, inspection_warehouse_name, winit_product_code, winit_product_name, total_package_qty, total_merchandise_qty, total_item_qty, is_completed, created_date, plan_shelf_completed_date, shelve_completed_date, raw_data, synced_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+          ON CONFLICT(order_no) DO UPDATE SET
+            status=excluded.status, is_completed=excluded.is_completed, total_package_qty=excluded.total_package_qty, total_merchandise_qty=excluded.total_merchandise_qty, total_item_qty=excluded.total_item_qty, plan_shelf_completed_date=excluded.plan_shelf_completed_date, shelve_completed_date=excluded.shelve_completed_date, raw_data=excluded.raw_data, synced_at=datetime('now')
+        `).bind(
+          orderNo, detail?.sellerOrderNo || '', detail?.status || '', detail?.orderType || '',
+          detail?.destinationWarehouseCode || '', detail?.destinationWarehouseName || '',
+          detail?.inspectionWarehouseCode || '', detail?.inspectionWarehouseName || '',
+          detail?.winitProductCode || '', detail?.winitProductName || '',
+          detail?.totalPackageQty || 0, detail?.totalMerchandiseQty || 0, detail?.totalItemQty || 0,
+          detail?.isCompleted || 'N', detail?.createdDate || '', detail?.planShelfCompletedDate || '',
+          detail?.shelveCompletedDate || '', JSON.stringify(detail)
+        ).run();
+
+        const packages = detail?.packageList || [];
+        for (const pkg of packages) {
+          await db.prepare(`DELETE FROM winit_inbound_packages WHERE order_no = ? AND package_no = ?`).bind(orderNo, pkg.packageNo).run();
+          await db.prepare(`INSERT INTO winit_inbound_packages (order_no, package_no, seller_case_no, status, unloading_time, shelves_time, weight, length, width, height, raw_data) VALUES (?,?,?,?,?,?,?,?,?,?,?)`).bind(
+            orderNo, pkg.packageNo || '', pkg.sellerCaseNo || '', pkg.status || '',
+            pkg.unloadingTime || '', pkg.shelvesTime || '', pkg.weight || 0, pkg.length || 0, pkg.width || 0, pkg.height || 0,
+            JSON.stringify(pkg)
+          ).run();
+
+          const merchList = pkg.merchandiseList || [];
+          for (const m of merchList) {
+            await db.prepare(`INSERT INTO winit_inbound_merchandise (order_no, package_no, sku, merchandise_code, specification, quantity, inspection_qty, actual_quantity) VALUES (?,?,?,?,?,?,?,?)`).bind(
+              orderNo, pkg.packageNo || '', m.sku || '', m.merchandiseCode || '', m.specification || '',
+              m.quantity || 0, m.inspectionQty || 0, m.actualQuantity || 0
+            ).run();
+          }
+        }
+
+        const orderMerch = detail?.merchandiseList || [];
+        for (const m of orderMerch) {
+          await db.prepare(`INSERT INTO winit_inbound_merchandise (order_no, package_no, sku, merchandise_code, specification, quantity, inspection_qty, actual_quantity) VALUES (?, '', ?, ?, ?, ?, ?, ?)`).bind(
+            orderNo, m.productBarcode || m.sku || '', m.merchandiseCode || '', m.specification || '',
+            m.quantity || 0, m.inspectionQty || 0, m.actualQuantity || 0
+          ).run();
+        }
+
+        totalSynced++;
+      }
+
+      const totalResults = result?.pageParams?.totalResults || 0;
+      if (pageNo * 50 >= totalResults) { hasMore = false; }
+      pageNo++;
+    }
+
+    return success({ synced: totalSynced });
+  } catch (e: any) {
+    return error(e.message || '同步万邑通入库单失败', 500);
+  }
+}
+
+async function handleWinitInboundOrders(db: D1Database, url: string) {
+  const params = getQueryParams(url);
+  const page = parseInt(params.page || '1');
+  const pageSize = parseInt(params.pageSize || '20');
+  const offset = (page - 1) * pageSize;
+
+  let where = '1=1';
+  const binds: any[] = [];
+  if (params.status) { where += ' AND status = ?'; binds.push(params.status); }
+  if (params.warehouse) { where += ' AND destination_warehouse_name LIKE ?'; binds.push(`%${params.warehouse}%`); }
+  if (params.orderNo) { where += ' AND order_no LIKE ?'; binds.push(`%${params.orderNo}%`); }
+
+  const countResult = await db.prepare(`SELECT COUNT(*) as total FROM winit_inbound_orders WHERE ${where}`).bind(...binds).first<{ total: number }>();
+  const orders = await db.prepare(`SELECT * FROM winit_inbound_orders WHERE ${where} ORDER BY created_date DESC LIMIT ? OFFSET ?`).bind(...binds, pageSize, offset).all();
+
+  return success({
+    list: orders.results,
+    total: countResult!.total,
+    page,
+    pageSize,
+  });
+}
+
+async function handleWinitInboundOrderDetail(db: D1Database, orderNo: string) {
+  const order = await db.prepare('SELECT * FROM winit_inbound_orders WHERE order_no = ?').bind(orderNo).first();
+  if (!order) return error('Order not found', 404);
+  const packages = await db.prepare('SELECT * FROM winit_inbound_packages WHERE order_no = ?').bind(orderNo).all();
+  const merchandise = await db.prepare('SELECT * FROM winit_inbound_merchandise WHERE order_no = ?').bind(orderNo).all();
+  return success({ ...order, packages: packages.results, merchandise: merchandise.results });
+}
 
 async function handleDashboard(db: D1Database, url: string) {
   const totalTransfers = await db.prepare("SELECT COUNT(*) as count FROM transfers WHERE status = 'ACTIVE'").first<{ count: number }>();
@@ -1046,6 +1333,20 @@ function matchRoute(path: string, method: string): { handler: string; params: Re
     if (segments.length === 2 && method === 'PUT') return { handler: 'userUpdate', params: { id: segments[1] } };
   }
 
+  if (segments[0] === 'winit' && segments[1] === 'inbound') {
+    if (segments.length === 2) {
+      if (method === 'GET') return { handler: 'winitInboundList', params: {} };
+    }
+    if (segments.length === 3) {
+      if (segments[2] === 'detail' && method === 'GET') return { handler: 'winitInboundDetail', params: {} };
+      if (segments[2] === 'sync' && method === 'POST') return { handler: 'winitInboundSync', params: {} };
+      if (segments[2] === 'orders' && method === 'GET') return { handler: 'winitInboundOrders', params: {} };
+    }
+    if (segments.length === 4 && segments[2] === 'orders' && method === 'GET') {
+      return { handler: 'winitInboundOrderDetail', params: { orderNo: segments[3] } };
+    }
+  }
+
   if (resource === 'health' && method === 'GET') return { handler: 'health', params: {} };
 
   return null;
@@ -1079,6 +1380,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     switch (route.handler) {
       case 'health': return success({ message: 'ok' });
+      case 'winitInboundList': return await handleWinitInboundList(env, url.toString());
+      case 'winitInboundDetail': return await handleWinitInboundDetail(env, url.toString());
+      case 'winitInboundSync': return await handleWinitInboundSync(env, db);
+      case 'winitInboundOrders': return await handleWinitInboundOrders(db, url.toString());
+      case 'winitInboundOrderDetail': return await handleWinitInboundOrderDetail(db, route.params.orderNo);
       case 'dashboard': return await handleDashboard(db, url.toString());
       case 'transfersList': return await handleTransfersList(db, url.toString());
       case 'transferDetail': return await handleTransferDetail(db, route.params.id);

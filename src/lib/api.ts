@@ -44,4 +44,9 @@ export const api = {
   getUsers: () => request<any>('/users'),
   createUser: (data: any) => request<any>('/users', { method: 'POST', body: JSON.stringify(data) }),
   updateUser: (id: number, data: any) => request<any>(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  getWinitInboundOrders: (params?: string) => request<any>(`/winit/inbound/orders${params || ''}`),
+  getWinitInboundOrderDetail: (orderNo: string) => request<any>(`/winit/inbound/orders/${orderNo}`),
+  syncWinitInbound: () => request<any>('/winit/inbound/sync', { method: 'POST' }),
+  getWinitInboundList: (params?: string) => request<any>(`/winit/inbound${params ? '?' + params : ''}`),
+  getWinitInboundDetail: (orderNo: string) => request<any>(`/winit/inbound/detail?orderNo=${orderNo}`),
 };

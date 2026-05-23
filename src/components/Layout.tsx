@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronRight,
   ArrowLeftRight,
+  Package,
 } from 'lucide-react';
 import { useAppStore } from '@/store/appStore';
 
@@ -61,6 +62,13 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    icon: Package,
+    label: '入库上架',
+    children: [
+      { label: '入库单上架情况', path: '/winit/inbound' },
+    ],
+  },
+  {
     icon: Settings,
     label: '系统设置',
     children: [
@@ -83,6 +91,7 @@ const breadcrumbMap: Record<string, string> = {
   '/tracking/sla': '时效追踪 / 时效规则配置',
   '/freight/overview': '运费管理 / 运费概览',
   '/freight/reconciliation': '运费管理 / 对账管理',
+  '/winit/inbound': '入库上架 / 入库单上架情况',
   '/settings/warehouses': '系统设置 / 仓库配置',
   '/settings/carriers': '系统设置 / 物流商管理',
   '/settings/teams': '系统设置 / 团队管理',
